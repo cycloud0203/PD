@@ -22,7 +22,10 @@ struct PerturbConfig {
     int netAwarePercent = 50;
     int total() const { return rotateW + swapW + deleteInsertW + rebuildW + swapChildrenW; }
 
-    static PerturbConfig forSize(int n) {
+    static PerturbConfig forCircuit(int n, int numNets) {
+        double density = (numNets > 0 && n > 0) ? (double)numNets / n : 0;
+        if (n <= 15 && density > 10.0)
+            return {8, 2, 8, 0, 4, 90};
         if (n <= 12) return {6, 5, 5, 1, 5, 70};
         if (n <= 15) return {7, 6, 6, 1, 0, 0};
         if (n <= 50) return {6, 4, 8, 2, 0, 0};

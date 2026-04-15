@@ -7,7 +7,7 @@ SAEngine::SAEngine(const SharedData& sd, GlobalBest& gb, unsigned seed, int init
     : _sd(sd), _gb(gb), _rng(seed),
       _tree(sd.numBlocks, sd.blockW.data(), sd.blockH.data(), _rng),
       _wlCache(sd.numBlocks, sd.numNets),
-      _cfg(PerturbConfig::forSize(sd.numBlocks)),
+      _cfg(PerturbConfig::forCircuit(sd.numBlocks, sd.numNets)),
       _initType(initType),
       _localBestCost(1e18), _localFeasible(false), _localBestRoot(-1)
 {
@@ -25,11 +25,17 @@ void SAEngine::run(std::chrono::steady_clock::time_point deadline)
     _deadline = deadline;
     if (timeRemaining() < 0.1) return;
 
-    switch (_initType % 4) {
-    case 0: _tree.init(); break;
-    case 1: _tree.randomInit(); break;
-    case 2: _tree.randomInsertionInit(); break;
-    case 3: _tree.netOrderedInit(_sd.blockAdj); break;
+    double initDensity = (double)_sd.numNets / _sd.numBlocks;
+    if (_sd.numBlocks <= 15 && initDensity > 10.0) {
+        if (_initType % 4 < 3) _tree.netOrderedInit(_sd.blockAdj);
+        else                    _tree.randomInsertionInit();
+    } else {
+        switch (_initType % 4) {
+        case 0: _tree.init(); break;
+        case 1: _tree.randomInit(); break;
+        case 2: _tree.randomInsertionInit(); break;
+        case 3: _tree.netOrderedInit(_sd.blockAdj); break;
+        }
     }
     _tree.pack();
     _wlCache.invalidate();
@@ -65,8 +71,14 @@ void SAEngine::runMultipleSA()
     int n = _sd.numBlocks;
     double totalBudget = timeRemaining();
 
-    // Reserve time for strict-outline wirelength refinement.
-    double wlRefBudget = (n <= 12) ? totalBudget * 0.25 : totalBudget * 0.40;
+    double netDensity = (double)_sd.numNets / n;
+    double wlRefBudget;
+    if (n <= 15 && netDensity > 10.0)
+        wlRefBudget = totalBudget * 0.70;
+    else if (n <= 15)
+        wlRefBudget = totalBudget * 0.50;
+    else
+        wlRefBudget = totalBudget * 0.40;
     double saBudget = totalBudget - wlRefBudget;
 
     // Run one deep SA pass per thread instead of many short restarts.

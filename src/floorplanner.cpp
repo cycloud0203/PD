@@ -177,7 +177,7 @@ void Floorplanner::computeNormalization()
     int m = std::max(5000, n * 100);
     double sumA = 0, sumW = 0;
 
-    PerturbConfig cfg = PerturbConfig::forSize(n);
+    PerturbConfig cfg = PerturbConfig::forCircuit(n, _sd.numNets);
     BTree tempTree(n, _sd.blockW.data(), _sd.blockH.data(), _rng);
     WLCache wlc(n, _sd.numNets);
     tempTree.pack();
@@ -208,9 +208,15 @@ void Floorplanner::floorplan()
     int n = _sd.numBlocks;
 
     double timeLimitSec;
-    if (n <= 12)      timeLimitSec = 8.0;
-    else if (n <= 35) timeLimitSec = 100.0;
-    else              timeLimitSec = 250.0;
+    double netDensity = (double)_sd.numNets / n;
+    if (n <= 12) {
+        if (netDensity > 10.0) timeLimitSec = 45.0;
+        else                   timeLimitSec = 30.0;
+    } else if (n <= 35) {
+        timeLimitSec = 100.0;
+    } else {
+        timeLimitSec = 250.0;
+    }
 
     computeNormalization();
 
