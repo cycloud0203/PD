@@ -25,7 +25,6 @@ void SAEngine::run(std::chrono::steady_clock::time_point deadline)
     _deadline = deadline;
     if (timeRemaining() < 0.1) return;
 
-    // Default init for threads without a given start state
     switch (_initType % 4) {
     case 0: _tree.init(); break;
     case 1: _tree.randomInit(); break;
@@ -33,8 +32,10 @@ void SAEngine::run(std::chrono::steady_clock::time_point deadline)
     case 3: _tree.netOrderedInit(_sd.blockAdj); break;
     }
     _tree.pack();
+    _wlCache.invalidate();
     double dA, dW;
     evalCostFull(dA, dW);
+    _wlCache.accept();
     tryUpdateLocal(dA, dW);
     tryUpdateGlobal(dA, dW);
 
@@ -49,8 +50,10 @@ void SAEngine::runFromState(std::chrono::steady_clock::time_point deadline,
 
     _tree.loadState(startNodes, startRoot);
     _tree.pack();
+    _wlCache.invalidate();
     double dA, dW;
     evalCostFull(dA, dW);
+    _wlCache.accept();
     tryUpdateLocal(dA, dW);
     tryUpdateGlobal(dA, dW);
 
@@ -66,49 +69,110 @@ void SAEngine::runMultipleSA()
     if (n <= 12) wlRefBudget = totalBudget * 0.25;
 
     double saBudget = totalBudget - wlRefBudget;
-    double perRun;
-    if (n <= 12)      perRun = saBudget * 0.28;
-    else if (n <= 35) perRun = saBudget * 0.20;
-    else              perRun = saBudget * 0.25;
 
-    auto saDeadline = std::chrono::steady_clock::now()
-                    + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-                          std::chrono::duration<double>(saBudget));
+    double stage1Fraction = _localFeasible ? 0.0 : 0.40;
+    double stage1Budget = saBudget * stage1Fraction;
+    double stage2Budget = saBudget - stage1Budget;
 
-    int runIdx = 0;
-    while (std::chrono::steady_clock::now() < saDeadline) {
-        double remaining = std::chrono::duration<double>(
-            saDeadline - std::chrono::steady_clock::now()).count();
-        if (remaining < 0.1) break;
+    double perRunS1;
+    if (n <= 12)      perRunS1 = stage1Budget * 0.40;
+    else if (n <= 35) perRunS1 = stage1Budget * 0.30;
+    else              perRunS1 = stage1Budget * 0.35;
 
-        double budget = std::min(perRun, remaining * 0.98);
-        if (budget < 0.05) break;
+    // Stage 1: Packing-Centric
+    if (stage1Budget > 0.05 && !_localFeasible) {
+        auto s1Deadline = std::chrono::steady_clock::now()
+                        + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+                              std::chrono::duration<double>(stage1Budget));
 
-        if (runIdx > 0) {
-            bool fromBest = (n <= 12) ? (runIdx % 2 == 1)
-                                      : (runIdx % 3 == 2);
-            if (fromBest && _localBestRoot >= 0) {
-                _tree.loadState(_localBestNodes, _localBestRoot);
-            } else {
-                int initTypes = (runIdx + _initType) % 3;
-                if (initTypes == 0) _tree.randomInit();
-                else if (initTypes == 1) _tree.randomInsertionInit();
-                else _tree.netOrderedInit(_sd.blockAdj);
+        int runIdx = 0;
+        while (std::chrono::steady_clock::now() < s1Deadline) {
+            double remaining = std::chrono::duration<double>(
+                s1Deadline - std::chrono::steady_clock::now()).count();
+            if (remaining < 0.05) break;
+
+            double budget = std::min(perRunS1, remaining * 0.98);
+            if (budget < 0.03) break;
+
+            if (runIdx > 0) {
+                bool fromBest = (runIdx % 3 == 2) && (_localBestRoot >= 0);
+                if (fromBest) {
+                    _tree.loadState(_localBestNodes, _localBestRoot);
+                } else {
+                    int initTypes = (runIdx + _initType) % 3;
+                    if (initTypes == 0) _tree.randomInit();
+                    else if (initTypes == 1) _tree.randomInsertionInit();
+                    else _tree.netOrderedInit(_sd.blockAdj);
+                }
+                _tree.pack();
+                _wlCache.invalidate();
+                double dA, dW;
+                evalCostFull(dA, dW);
+                _wlCache.accept();
+                tryUpdateLocal(dA, dW);
+                tryUpdateGlobal(dA, dW);
             }
-            _tree.pack();
-            double dA, dW;
-            evalCostFull(dA, dW);
-            tryUpdateLocal(dA, dW);
-            tryUpdateGlobal(dA, dW);
-        }
 
-        runSingleSA(budget);
-        ++runIdx;
+            bool feasible = runStageOne(budget);
+            ++runIdx;
+            if (feasible || _localFeasible) break;
+        }
+    }
+
+    // Stage 2: Wirelength-Centric
+    double perRunS2;
+    if (n <= 12)      perRunS2 = stage2Budget * 0.28;
+    else if (n <= 35) perRunS2 = stage2Budget * 0.20;
+    else              perRunS2 = stage2Budget * 0.25;
+
+    {
+        double s2Remaining = std::min(stage2Budget,
+            std::chrono::duration<double>(
+                _deadline - std::chrono::steady_clock::now()).count() - wlRefBudget);
+        if (s2Remaining < 0.05) s2Remaining = 0;
+
+        auto s2Deadline = std::chrono::steady_clock::now()
+                        + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+                              std::chrono::duration<double>(s2Remaining));
+
+        int runIdx = 0;
+        while (std::chrono::steady_clock::now() < s2Deadline) {
+            double remaining = std::chrono::duration<double>(
+                s2Deadline - std::chrono::steady_clock::now()).count();
+            if (remaining < 0.1) break;
+
+            double budget = std::min(perRunS2, remaining * 0.98);
+            if (budget < 0.05) break;
+
+            if (runIdx > 0) {
+                bool fromBest = (n <= 12) ? (runIdx % 2 == 1)
+                                          : (runIdx % 3 == 2);
+                if (fromBest && _localBestRoot >= 0) {
+                    _tree.loadState(_localBestNodes, _localBestRoot);
+                } else {
+                    int initTypes = (runIdx + _initType) % 3;
+                    if (initTypes == 0) _tree.randomInit();
+                    else if (initTypes == 1) _tree.randomInsertionInit();
+                    else _tree.netOrderedInit(_sd.blockAdj);
+                }
+                _tree.pack();
+                _wlCache.invalidate();
+                double dA, dW;
+                evalCostFull(dA, dW);
+                _wlCache.accept();
+                tryUpdateLocal(dA, dW);
+                tryUpdateGlobal(dA, dW);
+            }
+
+            runStageTwo(budget, _localFeasible);
+            ++runIdx;
+        }
     }
 
     if (wlRefBudget > 0.1 && _localBestRoot >= 0 && _localFeasible) {
         _tree.loadState(_localBestNodes, _localBestRoot);
         _tree.pack();
+        _wlCache.invalidate();
         runWLRefinement(std::min(wlRefBudget, timeRemaining() * 0.95));
     }
 }
@@ -125,6 +189,12 @@ double SAEngine::evalCostPacking(double& outArea)
         double rH = std::max(0.0, (double)exH / _sd.outlineH);
         c *= (1.0 + 50.0 * (rW + rH));
     }
+
+    double targetAR = (double)_sd.outlineW / _sd.outlineH;
+    double curAR = (_tree.getHeight() > 0)
+                 ? (double)_tree.getWidth() / _tree.getHeight() : 1e9;
+    double arDiff = std::abs(curAR - targetAR) / targetAR;
+    c *= (1.0 + 2.0 * arDiff);
 
     return c;
 }
@@ -144,12 +214,19 @@ double SAEngine::evalCostFull(double& outArea, double& outWL)
         c *= (1.0 + 25.0 * (rW + rH));
     }
 
+    double targetAR = (double)_sd.outlineW / _sd.outlineH;
+    double curAR = (_tree.getHeight() > 0)
+                 ? (double)_tree.getWidth() / _tree.getHeight() : 1e9;
+    double arDiff = std::abs(curAR - targetAR) / targetAR;
+    c *= (1.0 + 2.0 * arDiff);
+
     return c;
 }
 
 double SAEngine::computeInitTemp(bool packingOnly, int warmupSteps)
 {
     _tree.pack();
+    _wlCache.invalidate();
     double prevCost;
     if (packingOnly) {
         double dA;
@@ -174,6 +251,8 @@ double SAEngine::computeInitTemp(bool packingOnly, int warmupSteps)
         sumAbsDelta += std::abs(newCost - prevCost);
         _tree.undoPerturb();
     }
+
+    _wlCache.invalidate();
 
     double avgDelta = sumAbsDelta / warmupSteps;
     if (avgDelta < 1e-10) avgDelta = 1e-10;
@@ -215,48 +294,176 @@ void SAEngine::tryUpdateGlobal(double area, double wl)
                   _sd.numBlocks);
 }
 
+bool SAEngine::runStageOne(double budget)
+{
+    int n = _sd.numBlocks;
+
+    double T = computeInitTemp(true, 300);
+    _tree.pack();
+    _wlCache.invalidate();
+
+    double dA;
+    double curCost = evalCostPacking(dA);
+
+    int movesPerTemp;
+    if (n <= 12) movesPerTemp = n * n * 8;
+    else         movesPerTemp = std::max(n * n * 3, 80);
+
+    double frozenTemp = T * 1e-7;
+    std::uniform_real_distribution<double> unif(0.0, 1.0);
+
+    auto saEnd = std::chrono::steady_clock::now()
+               + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+                     std::chrono::duration<double>(budget * 0.95));
+    if (saEnd > _deadline) saEnd = _deadline;
+
+    while (T > frozenTemp) {
+        if (std::chrono::steady_clock::now() >= saEnd) break;
+
+        int accepted = 0;
+        for (int i = 0; i < movesPerTemp; ++i) {
+            _tree.perturb(_cfg);
+            _tree.pack();
+            double newA;
+            double newCost = evalCostPacking(newA);
+            double delta = newCost - curCost;
+
+            if (delta <= 0 || unif(_rng) < std::exp(-delta / T)) {
+                curCost = newCost;
+                ++accepted;
+
+                bool feas = (_tree.getWidth() <= _sd.outlineW
+                          && _tree.getHeight() <= _sd.outlineH);
+                if (feas) {
+                    _wlCache.invalidate();
+                    double wl = _wlCache.compute(_tree, _sd);
+                    _wlCache.accept();
+                    tryUpdateLocal(newA, wl);
+                    tryUpdateGlobal(newA, wl);
+                    return true;
+                }
+            } else {
+                _tree.undoPerturb();
+            }
+        }
+
+        double acceptRate = (double)accepted / movesPerTemp;
+        if (acceptRate > 0.8)       T *= 0.8;
+        else if (acceptRate >= 0.15) T *= 0.995;
+        else                         T *= 0.9;
+    }
+
+    return false;
+}
+
+void SAEngine::runStageTwo(double budget, bool hardConstraint)
+{
+    int n = _sd.numBlocks;
+
+    double T = computeInitTemp(false, 500);
+    _tree.pack();
+    _wlCache.invalidate();
+
+    double dA, dW;
+    double curCost = evalCostFull(dA, dW);
+    _wlCache.accept();
+
+    int movesPerTemp;
+    if (n <= 12) movesPerTemp = n * n * 8;
+    else         movesPerTemp = std::max(n * n * 3, 80);
+
+    double frozenTemp = T * 1e-7;
+    std::uniform_real_distribution<double> unif(0.0, 1.0);
+
+    double saTimeBudget = budget * 0.90;
+    auto saEnd = std::chrono::steady_clock::now()
+               + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+                     std::chrono::duration<double>(saTimeBudget));
+    if (saEnd > _deadline) saEnd = _deadline;
+
+    while (T > frozenTemp) {
+        if (std::chrono::steady_clock::now() >= saEnd) break;
+
+        int accepted = 0;
+        for (int i = 0; i < movesPerTemp; ++i) {
+            _tree.perturb(_cfg);
+            _tree.pack();
+
+            if (hardConstraint &&
+                (_tree.getWidth() > _sd.outlineW || _tree.getHeight() > _sd.outlineH)) {
+                _tree.undoPerturb();
+                continue;
+            }
+
+            double newA, newW;
+            double newCost = evalCostFull(newA, newW);
+            double delta = newCost - curCost;
+
+            if (delta <= 0 || unif(_rng) < std::exp(-delta / T)) {
+                curCost = newCost;
+                _wlCache.accept();
+                ++accepted;
+                tryUpdateLocal(newA, newW);
+                tryUpdateGlobal(newA, newW);
+            } else {
+                _tree.undoPerturb();
+            }
+        }
+
+        double acceptRate = (double)accepted / movesPerTemp;
+        if (acceptRate > 0.8)       T *= 0.8;
+        else if (acceptRate >= 0.15) T *= 0.995;
+        else                         T *= 0.9;
+    }
+
+    auto greedyEnd = std::chrono::steady_clock::now()
+                   + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+                         std::chrono::duration<double>(budget * 0.99 - saTimeBudget));
+    if (greedyEnd > _deadline) greedyEnd = _deadline;
+
+    while (std::chrono::steady_clock::now() < greedyEnd) {
+        _tree.perturb(_cfg);
+        _tree.pack();
+
+        if (hardConstraint &&
+            (_tree.getWidth() > _sd.outlineW || _tree.getHeight() > _sd.outlineH)) {
+            _tree.undoPerturb();
+            continue;
+        }
+
+        double gA, gW;
+        double nc = evalCostFull(gA, gW);
+        if (nc <= curCost) {
+            curCost = nc;
+            _wlCache.accept();
+            tryUpdateLocal(gA, gW);
+            tryUpdateGlobal(gA, gW);
+        } else {
+            _tree.undoPerturb();
+        }
+    }
+}
+
 void SAEngine::runSingleSA(double budget)
 {
     int n = _sd.numBlocks;
 
     double T = computeInitTemp(false, 500);
     _tree.pack();
+    _wlCache.invalidate();
 
     double dA, dW;
     double curCost = evalCostFull(dA, dW);
+    _wlCache.accept();
 
     int movesPerTemp;
     if (n <= 12) movesPerTemp = n * n * 8;
     else         movesPerTemp = std::max(n * n * 3, 80);
 
-    // Compute cooling rate to fit the time budget, like the old proven approach
-    // Estimate iteration time from a quick benchmark
-    auto benchStart = std::chrono::steady_clock::now();
-    for (int i = 0; i < 200; ++i) {
-        _tree.perturb(_cfg);
-        _tree.pack();
-        double a, w;
-        double nc = evalCostFull(a, w);
-        if (nc < curCost) curCost = nc; else _tree.undoPerturb();
-    }
-    double benchTime = std::chrono::duration<double>(
-        std::chrono::steady_clock::now() - benchStart).count();
-    double iterTime = benchTime / 200;
-    if (iterTime < 1e-8) iterTime = 1e-8;
+    double frozenTemp = T * 1e-7;
+    std::uniform_real_distribution<double> unif(0.0, 1.0);
 
     double saTimeBudget = budget * 0.90;
-    double totalIters = saTimeBudget / iterTime;
-    double tempSteps = totalIters / movesPerTemp;
-    double frozenTemp = T * 1e-7;
-    double coolingRate;
-    if (tempSteps > 10)
-        coolingRate = std::pow(frozenTemp / T, 1.0 / tempSteps);
-    else
-        coolingRate = 0.9;
-    coolingRate = std::max(coolingRate, 0.85);
-    coolingRate = std::min(coolingRate, 0.9999);
-
-    std::uniform_real_distribution<double> unif(0.0, 1.0);
     auto saEnd = std::chrono::steady_clock::now()
                + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
                      std::chrono::duration<double>(saTimeBudget));
@@ -264,6 +471,7 @@ void SAEngine::runSingleSA(double budget)
     while (T > frozenTemp) {
         if (std::chrono::steady_clock::now() >= saEnd) break;
 
+        int accepted = 0;
         for (int i = 0; i < movesPerTemp; ++i) {
             _tree.perturb(_cfg);
             _tree.pack();
@@ -273,16 +481,21 @@ void SAEngine::runSingleSA(double budget)
 
             if (delta <= 0 || unif(_rng) < std::exp(-delta / T)) {
                 curCost = newCost;
+                _wlCache.accept();
+                ++accepted;
                 tryUpdateLocal(newA, newW);
                 tryUpdateGlobal(newA, newW);
             } else {
                 _tree.undoPerturb();
             }
         }
-        T *= coolingRate;
+
+        double acceptRate = (double)accepted / movesPerTemp;
+        if (acceptRate > 0.8)       T *= 0.8;
+        else if (acceptRate >= 0.15) T *= 0.995;
+        else                         T *= 0.9;
     }
 
-    // Greedy descent
     auto greedyEnd = std::chrono::steady_clock::now()
                    + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
                          std::chrono::duration<double>(budget * 0.99 - saTimeBudget));
@@ -295,6 +508,7 @@ void SAEngine::runSingleSA(double budget)
         double nc = evalCostFull(gA, gW);
         if (nc <= curCost) {
             curCost = nc;
+            _wlCache.accept();
             tryUpdateLocal(gA, gW);
             tryUpdateGlobal(gA, gW);
         } else {
@@ -306,13 +520,14 @@ void SAEngine::runSingleSA(double budget)
 void SAEngine::runWLRefinement(double budget)
 {
     int n = _sd.numBlocks;
-    // Shift alpha toward the non-dominant objective for exploration diversity
     double refAlpha = _sd.alpha * 0.4;
 
     double T = computeInitTemp(false, 200) * 0.05;
     _tree.pack();
+    _wlCache.invalidate();
 
     double wl = _wlCache.compute(_tree, _sd);
+    _wlCache.accept();
     double area = (double)_tree.getArea();
     double curCost = refAlpha * (area / _sd.normA) + (1.0 - refAlpha) * (wl / _sd.normW);
 
@@ -324,11 +539,11 @@ void SAEngine::runWLRefinement(double budget)
     if (saEnd > _deadline) saEnd = _deadline;
 
     double frozenTemp = T * 1e-5;
-    double coolingRate = 0.995;
 
     std::uniform_real_distribution<double> unif(0.0, 1.0);
 
     while (T > frozenTemp && std::chrono::steady_clock::now() < saEnd) {
+        int accepted = 0;
         for (int i = 0; i < movesPerTemp; ++i) {
             _tree.perturb(_cfg);
             _tree.pack();
@@ -348,16 +563,21 @@ void SAEngine::runWLRefinement(double budget)
                 curCost = newCost;
                 wl = newWL;
                 area = newArea;
+                _wlCache.accept();
+                ++accepted;
                 tryUpdateLocal(newArea, newWL);
                 tryUpdateGlobal(newArea, newWL);
             } else {
                 _tree.undoPerturb();
             }
         }
-        T *= coolingRate;
+
+        double acceptRate = (double)accepted / movesPerTemp;
+        if (acceptRate > 0.8)       T *= 0.8;
+        else if (acceptRate >= 0.15) T *= 0.995;
+        else                         T *= 0.9;
     }
 
-    // Greedy WL descent with remaining time
     while (std::chrono::steady_clock::now() < saEnd) {
         _tree.perturb(_cfg);
         _tree.pack();
@@ -373,6 +593,7 @@ void SAEngine::runWLRefinement(double budget)
             curCost = newCost;
             wl = newWL;
             area = newArea;
+            _wlCache.accept();
             tryUpdateLocal(newArea, newWL);
             tryUpdateGlobal(newArea, newWL);
         } else {
@@ -380,6 +601,3 @@ void SAEngine::runWLRefinement(double budget)
         }
     }
 }
-
-bool SAEngine::runStageOne(double) { return false; }
-void SAEngine::runStageTwo(double, bool) {}
