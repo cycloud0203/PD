@@ -1,0 +1,5 @@
+*.o
+/sample
+/input_pa2
+/output
+/summary.txt
