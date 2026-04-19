@@ -17,3 +17,4 @@ for input_name in ami33 ami49 apte hp xerox; do
         echo "--------------------------------" | tee -a summary.txt
 
     echo "--------------------------------" | tee -a summary.txt
+done

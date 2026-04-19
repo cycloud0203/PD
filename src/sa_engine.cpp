@@ -81,17 +81,31 @@ void SAEngine::runMultipleSA()
         wlRefBudget = totalBudget * 0.40;
     double saBudget = totalBudget - wlRefBudget;
 
-    // Run one deep SA pass per thread instead of many short restarts.
+    // 【修復致命錯誤】：大電路絕對不能在高溫期重啟！只跑一次深度的探索。
     if (saBudget > 0.05) {
         runSingleSA(saBudget);
     }
 
-    // Stage 2: strict outline wirelength refinement.
+    // Stage 2: 嚴格邊界的 Wirelength 微調
     if (wlRefBudget > 0.1 && _localBestRoot >= 0 && _localFeasible) {
         _tree.loadState(_localBestNodes, _localBestRoot);
         _tree.pack();
         _wlCache.invalidate();
-        runWLRefinement(std::min(wlRefBudget, timeRemaining() * 0.95));
+        
+        if (n <= 15) {
+            // 小電路專屬：微幅加熱 (Quenching)。每次都載入「最佳解」，用低溫極限微調
+            auto wlEnd = std::chrono::steady_clock::now() + std::chrono::duration<double>(wlRefBudget);
+            while (std::chrono::steady_clock::now() < wlEnd) {
+                double rem = std::chrono::duration<double>(wlEnd - std::chrono::steady_clock::now()).count();
+                if (rem < 0.05) break;
+                _tree.loadState(_localBestNodes, _localBestRoot); // 保護並載入最佳解！
+                _tree.pack();
+                runWLRefinement(rem);
+            }
+        } else {
+            // 大電路：平穩收尾一次即可，避免破壞結構
+            runWLRefinement(std::min(wlRefBudget, timeRemaining() * 0.95));
+        }
     }
 }
 
@@ -383,8 +397,9 @@ void SAEngine::runSingleSA(double budget)
     double curCost = evalCostFull(dA, dW);
     _wlCache.accept();
 
+    // 針對小電路：把每個溫度的探索步數大幅提升 (n * n * 20)
     int movesPerTemp;
-    if (n <= 12) movesPerTemp = n * n * 8;
+    if (n <= 15) movesPerTemp = n * n * 20;
     else         movesPerTemp = std::max(n * n * 3, 80);
 
     double frozenTemp = T * 1e-7;
@@ -417,9 +432,14 @@ void SAEngine::runSingleSA(double budget)
         }
 
         double acceptRate = (double)accepted / movesPerTemp;
+        
+        // 小電路極度緩慢降溫 (0.999)，榨出神仙解
+        double goldenCooling = (n <= 15) ? 0.999 : 0.995;
+        double lowCooling    = (n <= 15) ? 0.99  : 0.95;
+
         if (acceptRate > 0.8)       T *= 0.85;
-        else if (acceptRate >= 0.15) T *= 0.995;
-        else                         T *= 0.95;
+        else if (acceptRate >= 0.15) T *= goldenCooling;
+        else                         T *= lowCooling;
     }
 }
 
@@ -437,7 +457,8 @@ void SAEngine::runWLRefinement(double budget)
     double area = (double)_tree.getArea();
     double curCost = refAlpha * (area / _sd.normA) + (1.0 - refAlpha) * (wl / _sd.normW);
 
-    int movesPerTemp = std::max(n * n * 5, 100);
+    // 微調期也為小電路加量
+    int movesPerTemp = (n <= 15) ? n * n * 20 : std::max(n * n * 5, 100);
 
     auto saEnd = std::chrono::steady_clock::now()
                + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
@@ -445,7 +466,8 @@ void SAEngine::runWLRefinement(double budget)
     if (saEnd > _deadline) saEnd = _deadline;
 
     double frozenTemp = T * 1e-5;
-    double coolingRate = 0.995;
+    // 小電路極慢微調
+    double coolingRate = (n <= 15) ? 0.999 : 0.995;
 
     std::uniform_real_distribution<double> unif(0.0, 1.0);
 
@@ -479,6 +501,7 @@ void SAEngine::runWLRefinement(double budget)
         T *= coolingRate;
     }
 
+    // 貪婪搜尋收尾
     while (std::chrono::steady_clock::now() < saEnd) {
         _tree.perturb(_cfg);
         _tree.pack();

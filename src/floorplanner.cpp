@@ -210,8 +210,8 @@ void Floorplanner::floorplan()
     double timeLimitSec;
     double netDensity = (double)_sd.numNets / n;
     if (n <= 12) {
-        if (netDensity > 10.0) timeLimitSec = 45.0;
-        else                   timeLimitSec = 30.0;
+        if (netDensity > 10.0) timeLimitSec = 20.0;
+        else                   timeLimitSec = 15.0;
     } else if (n <= 35) {
         timeLimitSec = 100.0;
     } else {
