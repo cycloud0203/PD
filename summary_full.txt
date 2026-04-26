@@ -1,0 +1,471 @@
+Running ./bin/fp 0.1 input_pa2/ami33.block input_pa2/ami33.nets output/ami33_0.1.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/ami33.block input_pa2/ami33.nets output/ami33_0.1.rpt 0.1
+Checking Report...
+cost:       actual  198030.10/reported 198030.00
+wirelength: actual  69353.00/reported 69353.00
+area:       actual  1356124/reported 1356124.00
+width:      outline 1326/actual 1309/reported 1309.00
+height:     outline 1205/actual 1036/reported 1036.00
+runtime: 98.63
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 1356124 & 69353.00
+[Eval] Your runtime: 98.63
+[Eval] Your normalized cost = 0.1*(A-minA)/(maxA-minA) + 0.9*(WL-minWL)/(maxWL-minWL) = 0.0349875
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 9.3774045 * 0.8 + 4.7354770 * 0.2
+             = 8.449015
+--------------------------------
+Running ./bin/fp 0.3 input_pa2/ami33.block input_pa2/ami33.nets output/ami33_0.3.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/ami33.block input_pa2/ami33.nets output/ami33_0.3.rpt 0.3
+Checking Report...
+cost:       actual  436636.90/reported 436637.00
+wirelength: actual  69934.00/reported 69934.00
+area:       actual  1292277/reported 1292277.00
+width:      outline 1326/actual 1239/reported 1239.00
+height:     outline 1205/actual 1043/reported 1043.00
+runtime: 102.92
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 1292277 & 69934.00
+[Eval] Your runtime: 102.92
+[Eval] Your normalized cost = 0.3*(A-minA)/(maxA-minA) + 0.7*(WL-minWL)/(maxWL-minWL) = 0.0738116
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 8.5143462 * 0.8 + 4.712605741 * 0.2
+             = 7.754001
+--------------------------------
+Running ./bin/fp 0.5 input_pa2/ami33.block input_pa2/ami33.nets output/ami33_0.5.rpt
+[Eval] Run cmd: ./evaluator/checker input_pa2/ami33.block input_pa2/ami33.nets output/ami33_0.5.rpt 0.5
+Checking Report...
+cost:       actual  642783.50/reported 642784.00
+wirelength: actual  75169.00/reported 75169.00
+area:       actual  1210398/reported 1210398.00
+width:      outline 1326/actual 1253/reported 1253.00
+height:     outline 1205/actual 966/reported 966.00
+runtime: 95.93
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 1210398 & 75169.00
+[Eval] Your runtime: 95.93
+[Eval] Your normalized cost = 0.5*(A-minA)/(maxA-minA) + 0.5*(WL-minWL)/(maxWL-minWL) = 0.0405735
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 9.3323610 * 0.8 + 4.7498715 * 0.2
+             = 8.415864
+--------------------------------
+Running ./bin/fp 0.7 input_pa2/ami33.block input_pa2/ami33.nets output/ami33_0.7.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/ami33.block input_pa2/ami33.nets output/ami33_0.7.rpt 0.7
+Checking Report...
+cost:       actual  866223.80/reported 866224.00
+wirelength: actual  78700.00/reported 78700.00
+area:       actual  1203734/reported 1203734.00
+width:      outline 1326/actual 1211/reported 1211.00
+height:     outline 1205/actual 994/reported 994.00
+runtime: 94.04
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 1203734 & 78700.00
+[Eval] Your runtime: 94.04
+[Eval] Your normalized cost = 0.7*(A-minA)/(maxA-minA) + 0.3*(WL-minWL)/(maxWL-minWL) = 0.0357547
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 9.3721168 * 0.8 + 4.7599476 * 0.2
+             = 8.44968
+--------------------------------
+Running ./bin/fp 0.9 input_pa2/ami33.block input_pa2/ami33.nets output/ami33_0.9.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/ami33.block input_pa2/ami33.nets output/ami33_0.9.rpt 0.9
+Checking Report...
+cost:       actual  1084843.80/reported 1084844.00
+wirelength: actual  87156.00/reported 87156.00
+area:       actual  1195698/reported 1195698.00
+width:      outline 1326/actual 1162/reported 1162.00
+height:     outline 1205/actual 1029/reported 1029.00
+runtime: 91.85
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 1195698 & 87156.00
+[Eval] Your runtime: 91.85
+[Eval] Your normalized cost = 0.9*(A-minA)/(maxA-minA) + 0.1*(WL-minWL)/(maxWL-minWL) = 0.0119916
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 10.138126 * 0.8 + 4.7716232 * 0.2
+             = 9.064825
+--------------------------------
+Running ./bin/fp 0.1 input_pa2/ami49.block input_pa2/ami49.nets output/ami49_0.1.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/ami49.block input_pa2/ami49.nets output/ami49_0.1.rpt 0.1
+Checking Report...
+cost:       actual  4740022.80/reported 4740023.00
+wirelength: actual  736348.00/reported 736348.00
+area:       actual  40773096/reported 40773096.00
+width:      outline 5336/actual 5334/reported 5334.00
+height:     outline 7673/actual 7644/reported 7644.00
+runtime: 124.40
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 40773096 & 736348.00
+[Eval] Your runtime: 124.40
+[Eval] Your normalized cost = 0.1*(A-minA)/(maxA-minA) + 0.9*(WL-minWL)/(maxWL-minWL) = 0.0966462
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 9.4225180 * 0.8 + 5.1546878 * 0.2
+             = 8.56895
+--------------------------------
+Running ./bin/fp 0.3 input_pa2/ami49.block input_pa2/ami49.nets output/ami49_0.3.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/ami49.block input_pa2/ami49.nets output/ami49_0.3.rpt 0.3
+Checking Report...
+cost:       actual  12190889.90/reported 12190890.00
+wirelength: actual  783557.00/reported 783557.00
+area:       actual  38808000/reported 38808000.00
+width:      outline 5336/actual 5250/reported 5250.00
+height:     outline 7673/actual 7392/reported 7392.00
+runtime: 127.04
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 38808000 & 783557.00
+[Eval] Your runtime: 127.04
+[Eval] Your normalized cost = 0.3*(A-minA)/(maxA-minA) + 0.7*(WL-minWL)/(maxWL-minWL) = 0.157553
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 9.1865788 * 0.8 + 5.1364557 * 0.2
+             = 8.37655
+--------------------------------
+Running ./bin/fp 0.5 input_pa2/ami49.block input_pa2/ami49.nets output/ami49_0.5.rpt
+[Eval] Run cmd: ./evaluator/checker input_pa2/ami49.block input_pa2/ami49.nets output/ami49_0.5.rpt 0.5
+Checking Report...
+cost:       actual  19583489.50/reported 19583490.00
+wirelength: actual  815267.00/reported 815267.00
+area:       actual  38351712/reported 38351712.00
+width:      outline 5336/actual 5208/reported 5208.00
+height:     outline 7673/actual 7364/reported 7364.00
+runtime: 125.54
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 38351712 & 815267.00
+[Eval] Your runtime: 125.54
+[Eval] Your normalized cost = 0.5*(A-minA)/(maxA-minA) + 0.5*(WL-minWL)/(maxWL-minWL) = 0.211356
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 8.4663125 * 0.8 + 5.1468148 * 0.2
+             = 7.80241
+--------------------------------
+Running ./bin/fp 0.7 input_pa2/ami49.block input_pa2/ami49.nets output/ami49_0.7.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/ami49.block input_pa2/ami49.nets output/ami49_0.7.rpt 0.7
+Checking Report...
+cost:       actual  26657981.70/reported 26657982.00
+wirelength: actual  858487.00/reported 858487.00
+area:       actual  37714908/reported 37714908.00
+width:      outline 5336/actual 4998/reported 4998.00
+height:     outline 7673/actual 7546/reported 7546.00
+runtime: 125.09
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 37714908 & 858487.00
+[Eval] Your runtime: 125.09
+[Eval] Your normalized cost = 0.7*(A-minA)/(maxA-minA) + 0.3*(WL-minWL)/(maxWL-minWL) = 0.195797
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 8.6631360 * 0.8 + 5.1499225 * 0.2
+             = 7.96049
+--------------------------------
+Running ./bin/fp 0.9 input_pa2/ami49.block input_pa2/ami49.nets output/ami49_0.9.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/ami49.block input_pa2/ami49.nets output/ami49_0.9.rpt 0.9
+Checking Report...
+cost:       actual  33293878.40/reported 33293878.00
+wirelength: actual  1088048.00/reported 1088048.00
+area:       actual  36872304/reported 36872304.00
+width:      outline 5336/actual 5124/reported 5124.00
+height:     outline 7673/actual 7196/reported 7196.00
+runtime: 125.33
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 36872304 & 1088048.00
+[Eval] Your runtime: 125.33
+[Eval] Your normalized cost = 0.9*(A-minA)/(maxA-minA) + 0.1*(WL-minWL)/(maxWL-minWL) = 0.0814441
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 9.4359725 * 0.8 + 5.1482651 * 0.2
+             = 8.57843
+--------------------------------
+Running ./bin/fp 0.1 input_pa2/apte.block input_pa2/apte.nets output/apte_0.1.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/apte.block input_pa2/apte.nets output/apte_0.1.rpt 0.1
+Checking Report...
+cost:       actual  6012983.70/reported 6012984.00
+wirelength: actual  700653.00/reported 700653.00
+area:       actual  53823960/reported 53823960.00
+width:      outline 11894/actual 9804/reported 9804.00
+height:     outline 6314/actual 5490/reported 5490.00
+runtime: 42.16
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 53823960 & 700653.00
+[Eval] Your runtime: 42.16
+[Eval] Your normalized cost = 0.1*(A-minA)/(maxA-minA) + 0.9*(WL-minWL)/(maxWL-minWL) = 0.0631508
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 8.9880700 * 0.8 + 4.3951367 * 0.2
+             = 8.069487
+--------------------------------
+Running ./bin/fp 0.3 input_pa2/apte.block input_pa2/apte.nets output/apte_0.3.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/apte.block input_pa2/apte.nets output/apte_0.3.rpt 0.3
+Checking Report...
+cost:       actual  14683045.30/reported 14683045.00
+wirelength: actual  698659.00/reported 698659.00
+area:       actual  47313280/reported 47313280.00
+width:      outline 11894/actual 9440/reported 9440.00
+height:     outline 6314/actual 5012/reported 5012.00
+runtime: 41.37
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 47313280 & 698659.00
+[Eval] Your runtime: 41.37
+[Eval] Your normalized cost = 0.3*(A-minA)/(maxA-minA) + 0.7*(WL-minWL)/(maxWL-minWL) = 0.037873
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 9.0792696 * 0.8 + 4.4004577 * 0.2
+             = 8.143512
+--------------------------------
+Running ./bin/fp 0.5 input_pa2/apte.block input_pa2/apte.nets output/apte_0.5.rpt
+[Eval] Run cmd: ./evaluator/checker input_pa2/apte.block input_pa2/apte.nets output/apte_0.5.rpt 0.5
+Checking Report...
+cost:       actual  24005969.50/reported 24005970.00
+wirelength: actual  698659.00/reported 698659.00
+area:       actual  47313280/reported 47313280.00
+width:      outline 11894/actual 9440/reported 9440.00
+height:     outline 6314/actual 5012/reported 5012.00
+runtime: 42.11
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 47313280 & 698659.00
+[Eval] Your runtime: 42.11
+[Eval] Your normalized cost = 0.5*(A-minA)/(maxA-minA) + 0.5*(WL-minWL)/(maxWL-minWL) = 0.0270521
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 9.5158705 * 0.8 + 4.3954734 * 0.2
+             = 8.491795
+--------------------------------
+Running ./bin/fp 0.7 input_pa2/apte.block input_pa2/apte.nets output/apte_0.7.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/apte.block input_pa2/apte.nets output/apte_0.7.rpt 0.7
+Checking Report...
+cost:       actual  33328893.70/reported 33328894.00
+wirelength: actual  698659.00/reported 698659.00
+area:       actual  47313280/reported 47313280.00
+width:      outline 11894/actual 9440/reported 9440.00
+height:     outline 6314/actual 5012/reported 5012.00
+runtime: 40.27
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 47313280 & 698659.00
+[Eval] Your runtime: 40.27
+[Eval] Your normalized cost = 0.7*(A-minA)/(maxA-minA) + 0.3*(WL-minWL)/(maxWL-minWL) = 0.0162313
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 13.10108 * 0.8 + 4.4078667 * 0.2
+             = 11.362473
+--------------------------------
+Running ./bin/fp 0.9 input_pa2/apte.block input_pa2/apte.nets output/apte_0.9.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/apte.block input_pa2/apte.nets output/apte_0.9.rpt 0.9
+Checking Report...
+cost:       actual  42651817.90/reported 42651818.00
+wirelength: actual  698659.00/reported 698659.00
+area:       actual  47313280/reported 47313280.00
+width:      outline 11894/actual 9440/reported 9440.00
+height:     outline 6314/actual 5012/reported 5012.00
+runtime: 40.35
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 47313280 & 698659.00
+[Eval] Your runtime: 40.35
+[Eval] Your normalized cost = 0.9*(A-minA)/(maxA-minA) + 0.1*(WL-minWL)/(maxWL-minWL) = 0.00541043
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 16.68632 * 0.8 + 4.4073279 * 0.2
+             = 14.230566
+--------------------------------
+Running ./bin/fp 0.1 input_pa2/hp.block input_pa2/hp.nets output/hp_0.1.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/hp.block input_pa2/hp.nets output/hp_0.1.rpt 0.1
+Checking Report...
+cost:       actual  1638959.10/reported 1638959.00
+wirelength: actual  214127.00/reported 214127.00
+area:       actual  14462448/reported 14462448.00
+width:      outline 5412/actual 4004/reported 4004.00
+height:     outline 3704/actual 3612/reported 3612.00
+runtime: 37.11
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 14462448 & 214127.00
+[Eval] Your runtime: 37.11
+[Eval] Your normalized cost = 0.1*(A-minA)/(maxA-minA) + 0.9*(WL-minWL)/(maxWL-minWL) = 0.0657794
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 8.8207369 * 0.8 + 4.4123241 * 0.2
+             = 7.939055
+--------------------------------
+Running ./bin/fp 0.3 input_pa2/hp.block input_pa2/hp.nets output/hp_0.3.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/hp.block input_pa2/hp.nets output/hp_0.3.rpt 0.3
+Checking Report...
+cost:       actual  3097092.60/reported 3097093.00
+wirelength: actual  201906.00/reported 201906.00
+area:       actual  9852528/reported 9852528.00
+width:      outline 5412/actual 3304/reported 3304.00
+height:     outline 3704/actual 2982/reported 2982.00
+runtime: 37.10
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 9852528 & 201906.00
+[Eval] Your runtime: 37.10
+[Eval] Your normalized cost = 0.3*(A-minA)/(maxA-minA) + 0.7*(WL-minWL)/(maxWL-minWL) = 0.0159393
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 9.746236 * 0.8 + 4.4123818 * 0.2
+             = 8.679466
+--------------------------------
+Running ./bin/fp 0.5 input_pa2/hp.block input_pa2/hp.nets output/hp_0.5.rpt
+[Eval] Run cmd: ./evaluator/checker input_pa2/hp.block input_pa2/hp.nets output/hp_0.5.rpt 0.5
+Checking Report...
+cost:       actual  5027217.00/reported 5027217.00
+wirelength: actual  201906.00/reported 201906.00
+area:       actual  9852528/reported 9852528.00
+width:      outline 5412/actual 3304/reported 3304.00
+height:     outline 3704/actual 2982/reported 2982.00
+runtime: 37.10
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 9852528 & 201906.00
+[Eval] Your runtime: 37.10
+[Eval] Your normalized cost = 0.5*(A-minA)/(maxA-minA) + 0.5*(WL-minWL)/(maxWL-minWL) = 0.0196811
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 9.5012375 * 0.8 + 4.4123818 * 0.2
+             = 8.483466
+--------------------------------
+Running ./bin/fp 0.7 input_pa2/hp.block input_pa2/hp.nets output/hp_0.7.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/hp.block input_pa2/hp.nets output/hp_0.7.rpt 0.7
+Checking Report...
+cost:       actual  6611474.70/reported 6611475.00
+wirelength: actual  239913.00/reported 239913.00
+area:       actual  9342144/reported 9342144.00
+width:      outline 5412/actual 4634/reported 4634.00
+height:     outline 3704/actual 2016/reported 2016.00
+runtime: 37.09
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 9342144 & 239913.00
+[Eval] Your runtime: 37.09
+[Eval] Your normalized cost = 0.7*(A-minA)/(maxA-minA) + 0.3*(WL-minWL)/(maxWL-minWL) = 0.0417484
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 8.9992118 * 0.8 + 4.4124396 * 0.2
+             = 8.081858
+--------------------------------
+Running ./bin/fp 0.9 input_pa2/hp.block input_pa2/hp.nets output/hp_0.9.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/hp.block input_pa2/hp.nets output/hp_0.9.rpt 0.9
+Checking Report...
+cost:       actual  8078084.90/reported 8078085.00
+wirelength: actual  257777.00/reported 257777.00
+area:       actual  8947008/reported 8947008.00
+width:      outline 5412/actual 4438/reported 4438.00
+height:     outline 3704/actual 2016/reported 2016.00
+runtime: 37.11
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 8947008 & 257777.00
+[Eval] Your runtime: 37.11
+[Eval] Your normalized cost = 0.9*(A-minA)/(maxA-minA) + 0.1*(WL-minWL)/(maxWL-minWL) = 0.00762568
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 10.290579 * 0.8 + 4.4123241 * 0.2
+             = 9.114925
+--------------------------------
+Running ./bin/fp 0.1 input_pa2/xerox.block input_pa2/xerox.nets output/xerox_0.1.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/xerox.block input_pa2/xerox.nets output/xerox_0.1.rpt 0.1
+Checking Report...
+cost:       actual  2539809.80/reported 2539810.00
+wirelength: actual  483034.00/reported 483034.00
+area:       actual  21050792/reported 21050792.00
+width:      outline 6937/actual 4529/reported 4529.00
+height:     outline 5379/actual 4648/reported 4648.00
+runtime: 41.43
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 21050792 & 483034.00
+[Eval] Your runtime: 41.43
+[Eval] Your normalized cost = 0.1*(A-minA)/(maxA-minA) + 0.9*(WL-minWL)/(maxWL-minWL) = 0.00730824
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 11.14292 * 0.8 + 4.4905740 * 0.2
+             = 9.812455
+--------------------------------
+Running ./bin/fp 0.3 input_pa2/xerox.block input_pa2/xerox.nets output/xerox_0.3.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/xerox.block input_pa2/xerox.nets output/xerox_0.3.rpt 0.3
+Checking Report...
+cost:       actual  6653361.40/reported 6653361.00
+wirelength: actual  483034.00/reported 483034.00
+area:       actual  21050792/reported 21050792.00
+width:      outline 6937/actual 4529/reported 4529.00
+height:     outline 5379/actual 4648/reported 4648.00
+runtime: 41.00
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 21050792 & 483034.00
+[Eval] Your runtime: 41.00
+[Eval] Your normalized cost = 0.3*(A-minA)/(maxA-minA) + 0.7*(WL-minWL)/(maxWL-minWL) = 0.0219247
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 10.185883 * 0.8 + 4.4957500 * 0.2
+             = 9.04786
+--------------------------------
+Running ./bin/fp 0.5 input_pa2/xerox.block input_pa2/xerox.nets output/xerox_0.5.rpt
+[Eval] Run cmd: ./evaluator/checker input_pa2/xerox.block input_pa2/xerox.nets output/xerox_0.5.rpt 0.5
+Checking Report...
+cost:       actual  10460125.75/reported 10460126.00
+wirelength: actual  495777.50/reported 495778.00
+area:       actual  20424474/reported 20424474.00
+width:      outline 6937/actual 3906/reported 3906.00
+height:     outline 5379/actual 5229/reported 5229.00
+runtime: 42.20
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 20424474 & 495777.50
+[Eval] Your runtime: 42.20
+[Eval] Your normalized cost = 0.5*(A-minA)/(maxA-minA) + 0.5*(WL-minWL)/(maxWL-minWL) = 0.0323998
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 9.50000 * 0.8 + 4.4813054 * 0.2
+             = 8.496261
+--------------------------------
+Running ./bin/fp 0.7 input_pa2/xerox.block input_pa2/xerox.nets output/xerox_0.7.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/xerox.block input_pa2/xerox.nets output/xerox_0.7.rpt 0.7
+Checking Report...
+cost:       actual  14214531.85/reported 14214532.00
+wirelength: actual  509679.50/reported 509680.00
+area:       actual  20088040/reported 20088040.00
+width:      outline 6937/actual 3878/reported 3878.00
+height:     outline 5379/actual 5180/reported 5180.00
+runtime: 42.16
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 20088040 & 509679.50
+[Eval] Your runtime: 42.16
+[Eval] Your normalized cost = 0.7*(A-minA)/(maxA-minA) + 0.3*(WL-minWL)/(maxWL-minWL) = 0.029122
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 9.714631 * 0.8 + 4.4817869 * 0.2
+             = 8.668057
+--------------------------------
+Running ./bin/fp 0.9 input_pa2/xerox.block input_pa2/xerox.nets output/xerox_0.9.rpt
+[Eval] Warning: Only sopprot alpha=0.5 for public evaluation. The temporary score would not be correct!
+[Eval] Run cmd: ./evaluator/checker input_pa2/xerox.block input_pa2/xerox.nets output/xerox_0.9.rpt 0.9
+Checking Report...
+cost:       actual  18130203.95/reported 18130204.00
+wirelength: actual  509679.50/reported 509680.00
+area:       actual  20088040/reported 20088040.00
+width:      outline 6937/actual 3878/reported 3878.00
+height:     outline 5379/actual 5180/reported 5180.00
+runtime: 40.68
+
+Congradulations, your results are correct
+[Eval] Your area & wirelength: 20088040 & 509679.50
+[Eval] Your runtime: 40.68
+[Eval] Your normalized cost = 0.9*(A-minA)/(maxA-minA) + 0.1*(WL-minWL)/(maxWL-minWL) = 0.0199715
+[Eval] SCORE = QUALITY_SCORE * 0.8 + RUNTIME_SCORE * 0.2
+             = 10.313771 * 0.8 + 4.4996019 * 0.2
+             = 9.15094
+--------------------------------
+--------------------------------

@@ -27,6 +27,7 @@ private:
     void buildSharedData();
     void computeNormalization();
     double computeWirelength();
+    void applyGlobalShiftRefinement();
 
     double _alpha;
     int _outlineW, _outlineH;

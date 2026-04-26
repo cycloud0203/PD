@@ -42,8 +42,6 @@ private:
     void runMultipleSA();
     void runSingleSA(double budget);
     void runWLRefinement(double budget);
-    bool runStageOne(double budget);
-    void runStageTwo(double budget, bool hardConstraint);
 
     void tryUpdateLocal(double area, double wl);
     void tryUpdateGlobal(double area, double wl);

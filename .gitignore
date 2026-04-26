@@ -5,3 +5,6 @@
 /summary.txt
 /gen_input_info.sh
 /input_inf.txt
+/.venv
+__pycache__/
+*.pyc

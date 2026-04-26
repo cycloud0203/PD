@@ -8,6 +8,84 @@
 #include <numeric>
 #include <thread>
 
+namespace {
+double computeShiftedWirelength(const SharedData& sd,
+                                const std::vector<int>& bx,
+                                const std::vector<int>& by,
+                                const std::vector<int>& bx2,
+                                const std::vector<int>& by2,
+                                int shiftX,
+                                int shiftY)
+{
+    long long wl2 = 0;
+    int shiftX2 = shiftX * 2;
+    int shiftY2 = shiftY * 2;
+    for (int netId = 0; netId < sd.numNets; ++netId) {
+        int minX = INT_MAX, maxX = INT_MIN;
+        int minY = INT_MAX, maxY = INT_MIN;
+        for (int j = sd.netStart[netId]; j < sd.netStart[netId + 1]; ++j) {
+            int cx2;
+            int cy2;
+            int bid = sd.allPins[j].blockId;
+            if (bid >= 0) {
+                cx2 = bx[bid] + bx2[bid] + shiftX2;
+                cy2 = by[bid] + by2[bid] + shiftY2;
+            } else {
+                cx2 = sd.allPins[j].fixedX2;
+                cy2 = sd.allPins[j].fixedY2;
+            }
+            minX = std::min(minX, cx2);
+            maxX = std::max(maxX, cx2);
+            minY = std::min(minY, cy2);
+            maxY = std::max(maxY, cy2);
+        }
+        wl2 += (long long)(maxX - minX) + (maxY - minY);
+    }
+    return (double)wl2 * 0.5;
+}
+
+int optimizeAxisShift(const SharedData& sd,
+                      const std::vector<int>& bx,
+                      const std::vector<int>& by,
+                      const std::vector<int>& bx2,
+                      const std::vector<int>& by2,
+                      int minShift,
+                      int maxShift,
+                      bool optimizeX)
+{
+    if (minShift > maxShift) return 0;
+    int lo = minShift;
+    int hi = maxShift;
+    while (hi - lo > 3) {
+        int m1 = lo + (hi - lo) / 3;
+        int m2 = hi - (hi - lo) / 3;
+        double c1 = optimizeX
+            ? computeShiftedWirelength(sd, bx, by, bx2, by2, m1, 0)
+            : computeShiftedWirelength(sd, bx, by, bx2, by2, 0, m1);
+        double c2 = optimizeX
+            ? computeShiftedWirelength(sd, bx, by, bx2, by2, m2, 0)
+            : computeShiftedWirelength(sd, bx, by, bx2, by2, 0, m2);
+        if (c1 <= c2) hi = m2 - 1;
+        else lo = m1 + 1;
+    }
+
+    int bestShift = lo;
+    double bestWL = optimizeX
+        ? computeShiftedWirelength(sd, bx, by, bx2, by2, lo, 0)
+        : computeShiftedWirelength(sd, bx, by, bx2, by2, 0, lo);
+    for (int s = lo + 1; s <= hi; ++s) {
+        double wl = optimizeX
+            ? computeShiftedWirelength(sd, bx, by, bx2, by2, s, 0)
+            : computeShiftedWirelength(sd, bx, by, bx2, by2, 0, s);
+        if (wl < bestWL) {
+            bestWL = wl;
+            bestShift = s;
+        }
+    }
+    return bestShift;
+}
+}  // namespace
+
 Floorplanner::Floorplanner(std::fstream& blockInput, std::fstream& netInput, double alpha)
     : _alpha(alpha), _outlineW(0), _outlineH(0), _numNets(0),
       _rng((unsigned)std::chrono::steady_clock::now().time_since_epoch().count())
@@ -210,12 +288,12 @@ void Floorplanner::floorplan()
     double timeLimitSec;
     double netDensity = (double)_sd.numNets / n;
     if (n <= 12) {
-        if (netDensity > 10.0) timeLimitSec = 20.0;
-        else                   timeLimitSec = 15.0;
+        if (netDensity > 10.0) timeLimitSec = 45.0;
+        else                   timeLimitSec = 40.0;
     } else if (n <= 35) {
-        timeLimitSec = 100.0;
-    } else {
         timeLimitSec = 250.0;
+    } else {
+        timeLimitSec = 400.0;
     }
 
     computeNormalization();
@@ -223,9 +301,9 @@ void Floorplanner::floorplan()
     unsigned hwThreads = std::thread::hardware_concurrency();
     if (hwThreads == 0) hwThreads = 4;
     int maxThreads;
-    if (n <= 12)      maxThreads = 16;
-    else if (n <= 35) maxThreads = 12;
-    else              maxThreads = 8;
+    if (n <= 12)      maxThreads = 32;
+    else if (n <= 35) maxThreads = 24;
+    else              maxThreads = 16;
     int numThreads = std::min((int)hwThreads, maxThreads);
 
     auto deadline = startTime
@@ -494,6 +572,57 @@ void Floorplanner::floorplan()
                 }
             }
         }
+    }
+
+    applyGlobalShiftRefinement();
+}
+
+void Floorplanner::applyGlobalShiftRefinement()
+{
+    int n = _sd.numBlocks;
+    if (_gb.root < 0 || (int)_gb.bestX.size() != n) return;
+    int minX = INT_MAX;
+    int minY = INT_MAX;
+    int maxX = INT_MIN;
+    int maxY = INT_MIN;
+    for (int i = 0; i < n; ++i) {
+        minX = std::min(minX, _gb.bestX[i]);
+        minY = std::min(minY, _gb.bestY[i]);
+        maxX = std::max(maxX, _gb.bestX2[i]);
+        maxY = std::max(maxY, _gb.bestY2[i]);
+    }
+    int loX = -minX;
+    int hiX = _sd.outlineW - maxX;
+    int loY = -minY;
+    int hiY = _sd.outlineH - maxY;
+    if (loX > hiX && loY > hiY) return;
+
+    int bestDx = 0;
+    int bestDy = 0;
+    if (loX <= hiX) {
+        bestDx = optimizeAxisShift(_sd, _gb.bestX, _gb.bestY, _gb.bestX2, _gb.bestY2, loX, hiX, true);
+    }
+    if (loY <= hiY) {
+        std::vector<int> shiftedX = _gb.bestX;
+        std::vector<int> shiftedX2 = _gb.bestX2;
+        for (int i = 0; i < n; ++i) {
+            shiftedX[i] += bestDx;
+            shiftedX2[i] += bestDx;
+        }
+        bestDy = optimizeAxisShift(_sd, shiftedX, _gb.bestY, shiftedX2, _gb.bestY2, loY, hiY, false);
+    }
+
+    if (bestDx == 0 && bestDy == 0) return;
+
+    double oldWL = computeShiftedWirelength(_sd, _gb.bestX, _gb.bestY, _gb.bestX2, _gb.bestY2, 0, 0);
+    double newWL = computeShiftedWirelength(_sd, _gb.bestX, _gb.bestY, _gb.bestX2, _gb.bestY2, bestDx, bestDy);
+    if (newWL >= oldWL) return;
+
+    for (int i = 0; i < n; ++i) {
+        _gb.bestX[i] += bestDx;
+        _gb.bestY[i] += bestDy;
+        _gb.bestX2[i] += bestDx;
+        _gb.bestY2[i] += bestDy;
     }
 }
 
