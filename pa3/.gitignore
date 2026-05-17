@@ -1,0 +1,7 @@
+/evaluator
+src/*.o
+bin/place
+*.gp.pl
+*.lg.pl
+*.dp.pl
+init.plt
