@@ -14,7 +14,7 @@ namespace {
 constexpr double kSmoothingGamma = 0.1;
 constexpr double kMinExpSum = 1e-10;
 constexpr double kMinLambdaMagnitude = 1e-20;
-constexpr double kDensityTargetFactor = 0.8;
+constexpr double kDefaultDensityTargetFactor = 0.8;
 constexpr double kMinContribution = 1e-10;
 
 int resolveGridCount(int gridCount, unsigned numModules) {
@@ -230,7 +230,8 @@ void Wirelength::Backward() {
 Density::Density(Placement& placement, int* gridCountPtr)
     : BaseFunction(placement.numModules()),
       placement_(&placement),
-      gridCountPtr_(gridCountPtr) {}
+      gridCountPtr_(gridCountPtr),
+      targetFactor_(kDefaultDensityTargetFactor) {}
 
 double Density::calculate() {
     const int gridSize =
@@ -245,7 +246,7 @@ double Density::calculate() {
     const double regionHeight = maxY - minY;
     const double cellWidth = regionWidth / gridSize;
     const double cellHeight = regionHeight / gridSize;
-    const double capacityLimit = kDensityTargetFactor * cellWidth * cellHeight;
+    const double capacityLimit = targetFactor_ * cellWidth * cellHeight;
     const double cellArea = cellWidth * cellHeight;
 
     const int cellCount = gridSize * gridSize;
@@ -333,7 +334,7 @@ void Density::Backward() {
     const double regionHeight = top - bottom;
     const double cellWidth = regionWidth / gridSize;
     const double cellHeight = regionHeight / gridSize;
-    const double capacityLimit = kDensityTargetFactor * cellWidth * cellHeight;
+    const double capacityLimit = targetFactor_ * cellWidth * cellHeight;
     const double cellArea = cellWidth * cellHeight;
 
     std::vector<std::vector<double>> gridDensity(
@@ -649,6 +650,8 @@ void ObjectiveFunction::initLambda() {
 void ObjectiveFunction::updateLambda(double value) { lambda_ = value; }
 
 void ObjectiveFunction::updateLambda() { lambda_ *= 2.0; }
+
+void ObjectiveFunction::scaleLambda(double factor) { lambda_ *= factor; }
 
 double ObjectiveFunction::wirelength() { return wirelength_->calculate(); }
 

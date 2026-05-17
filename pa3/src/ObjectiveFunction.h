@@ -28,6 +28,9 @@ public:
     double calculate() override;
     void Backward() override;
 
+    void setGamma(double value) { gamma_ = value; }
+    double gamma() const { return gamma_; }
+
 private:
     Placement* placement_;
     double gamma_;
@@ -40,9 +43,13 @@ public:
     double calculate() override;
     void Backward() override;
 
+    void setTargetFactor(double value) { targetFactor_ = value; }
+    double targetFactor() const { return targetFactor_; }
+
 private:
     Placement* placement_;
     int* gridCountPtr_;
+    double targetFactor_;
 };
 
 class ObjectiveFunction : public BaseFunction {
@@ -62,9 +69,17 @@ public:
     void initLambda();
     void updateLambda(double value);
     void updateLambda();
+    void scaleLambda(double factor);
+    double lambda() const { return lambda_; }
 
     void setDensityGridCount(int count) { densityGridCount_ = count; }
     int densityGridCount() const { return densityGridCount_; }
+
+    void setWirelengthGamma(double value) { wirelength_->setGamma(value); }
+    double wirelengthGamma() const { return wirelength_->gamma(); }
+
+    void setDensityTargetFactor(double value) { density_->setTargetFactor(value); }
+    double densityTargetFactor() const { return density_->targetFactor(); }
 
 private:
     std::unique_ptr<Wirelength> wirelength_;

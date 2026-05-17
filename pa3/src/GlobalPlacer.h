@@ -13,6 +13,10 @@ public:
     int innerLoopLimit = 3000;
     double initialWeight = 500.0;
     double finalWeight = 10.0;
+    // Per-benchmark density target factor for the GP penalty function.
+    // Should sit at or below the legalizer's target density to leave a small
+    // margin. Default 0.80 is safe for the 0.85 utilization cases.
+    double densityTargetFactor = 0.80;
 
     void setup(Placement& placement);
     void configureBenchmark();
