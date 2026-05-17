@@ -18,10 +18,18 @@ public:
     // margin. Default 0.80 is safe for the 0.85 utilization cases.
     double densityTargetFactor = 0.80;
 
+    // Coarse-grid overflow tracking. When > 0, computeCoarseOverflowRatio()
+    // measures overflow at this coarser bin scale (sized to ~10 row heights
+    // per side, matching check_density_target.pl). The solve() outer loop
+    // uses it as a secondary early-exit criterion, which steers the optimizer
+    // toward placements that legalize with less HPWL inflation.
+    int coarseDensityGridCount = 0;
+
     void setup(Placement& placement);
     void configureBenchmark();
     void solve(int seedValue);
     double computeOverflowRatio();
+    double computeCoarseOverflowRatio();
 
     void exportPlot(const std::string& filename, bool showPlot = false);
     void exportDetailedPlot(const std::string& filename, bool showPlot = false);

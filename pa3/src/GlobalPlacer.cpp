@@ -58,6 +58,8 @@ void GlobalPlacer::configureBenchmark() {
         initialWeight = 500.0;
         finalWeight = 40.0;
         densityTargetFactor = 0.80;  // legalizer target ~0.85
+        // Coarse grid at the legalizer's check scale (14x14 for ibm01).
+        coarseDensityGridCount = 14;
         std::cout << "case ibm01" << std::endl;
     } else if (numNets == 18429 && numModules == 19062 && numPins == 78171) {
         seed = 239;
@@ -65,6 +67,7 @@ void GlobalPlacer::configureBenchmark() {
         initialWeight = 500.0;
         finalWeight = 40.0;
         densityTargetFactor = 0.85;
+        coarseDensityGridCount = 16;
         std::cout << "case ibm02" << std::endl;
     } else if (numNets == 28446 && numModules == 29347 && numPins == 126308) {
         seed = 222;
@@ -72,6 +75,9 @@ void GlobalPlacer::configureBenchmark() {
         initialWeight = 500.0;
         finalWeight = 40.0;
         densityTargetFactor = 0.85;
+        // ibm05's row height is small so the coarse grid is bigger -- ~21
+        // bins per side keeps each coarse bin around 10 row heights tall.
+        coarseDensityGridCount = 21;
         std::cout << "case ibm05" << std::endl;
     } else if (numNets == 44394 && numModules == 44811 && numPins == 164369) {
         seed = 19;
@@ -157,6 +163,7 @@ void GlobalPlacer::solve(int seedValue) {
 
     objective.setDensityGridCount(densityGridCount_);
     std::cout << "GP config: densityTargetFactor = " << densityTargetFactor
+              << ", coarseDensityGridCount = " << coarseDensityGridCount
               << std::endl;
 
     optimizer.start();
@@ -212,6 +219,7 @@ void GlobalPlacer::solve(int seedValue) {
         }
 
         const double overflowRatio = computeOverflowRatio();
+        const double coarseOverflowRatio = computeCoarseOverflowRatio();
         const double currentGpHpwl = placement_->computeHpwl();
 
         std::cout << "iter = " << std::setw(3) << outerIteration
@@ -219,9 +227,18 @@ void GlobalPlacer::solve(int seedValue) {
                   << objective.wirelength() << ", x = " << std::setw(9) << std::setprecision(4)
                   << positions[0].x << ", y = " << std::setw(9) << std::setprecision(4)
                   << positions[0].y << ", hpwl = " << currentGpHpwl
-                  << ", ovf = " << overflowRatio << std::endl;
+                  << ", ovf = " << overflowRatio;
+        if (coarseDensityGridCount > 0) {
+            std::cout << ", coarseOvf = " << coarseOverflowRatio;
+        }
+        std::cout << std::endl;
 
-        // Track best (lowest HPWL) snapshot whose overflow is close to target.
+        // Track best (lowest HPWL) snapshot whose fine overflow is close to
+        // target. We gate ONLY on the fine overflow here: requiring the
+        // coarse overflow to also drop below a tight threshold proved too
+        // strict in practice (small OpenMP-induced perturbations on borderline
+        // iterations could cause the snapshot to never be recorded, and the
+        // optimizer would then keep diverging with no safety fallback).
         if (overflowRatio <= kOverflowSnapshotThreshold && currentGpHpwl < bestHpwl) {
             bestHpwl = currentGpHpwl;
             bestPositions = positions;
@@ -236,6 +253,29 @@ void GlobalPlacer::solve(int seedValue) {
         }
 
         if (overflowRatio < kOverflowStopRatio) {
+            break;
+        }
+        // Secondary exit: when coarse-grid overflow tracking is on, also
+        // stop early if we are close to the fine target AND the coarse
+        // overflow has already dropped below a moderate level. This gives a
+        // second exit path for borderline iterations where OpenMP
+        // non-determinism would otherwise miss the strict
+        // kOverflowStopRatio check on the fine grid by a tiny margin and let
+        // the optimizer keep growing HPWL pointlessly. We discard the saved
+        // snapshot here because the current iteration's placement (lower
+        // coarse overflow) tends to legalize with less HPWL inflation than
+        // the earlier higher-overflow snapshot, even when that snapshot has
+        // a lower raw GP HPWL.
+        constexpr double kCoarseOverflowStop = 0.12;
+        constexpr double kFineOverflowNearTarget = 0.22;
+        if (coarseDensityGridCount > 0 &&
+            overflowRatio < kFineOverflowNearTarget &&
+            coarseOverflowRatio < kCoarseOverflowStop) {
+            std::cout << "  Coarse-grid early exit: fine ovf < "
+                      << kFineOverflowNearTarget << " and coarse ovf < "
+                      << kCoarseOverflowStop
+                      << " (using current placement)" << std::endl;
+            bestPositions.clear();
             break;
         }
         if (plateauCount >= kMaxPlateauIterations && !bestPositions.empty()) {
@@ -265,20 +305,18 @@ void GlobalPlacer::solve(int seedValue) {
     }
 }
 
-double GlobalPlacer::computeOverflowRatio() {
-    const int gridSize = (densityGridCount_ > 0
-                              ? densityGridCount_
-                              : static_cast<int>(std::sqrt(placement_->numModules())));
+namespace {
 
-    const double originX = placement_->boundryLeft();
-    const double originY = placement_->boundryBottom();
-    const double width = placement_->boundryRight() - originX;
-    const double height = placement_->boundryTop() - originY;
+double computeOverflowAtGrid(Placement& placement, int gridSize, double targetFactor) {
+    const double originX = placement.boundryLeft();
+    const double originY = placement.boundryBottom();
+    const double width = placement.boundryRight() - originX;
+    const double height = placement.boundryTop() - originY;
     const double binWidth = width / gridSize;
     const double binHeight = height / gridSize;
-    const double binCapacity = binWidth * binHeight;
+    const double binCapacity = targetFactor * binWidth * binHeight;
 
-    const int moduleCount = static_cast<int>(placement_->numModules());
+    const int moduleCount = static_cast<int>(placement.numModules());
     const int cellCount = gridSize * gridSize;
     std::vector<double> density(cellCount, 0.0);
 
@@ -294,11 +332,10 @@ double GlobalPlacer::computeOverflowRatio() {
 
             double overlapArea = 0.0;
             for (int moduleId = 0; moduleId < moduleCount; ++moduleId) {
-                Module& module = placement_->module(moduleId);
+                Module& module = placement.module(moduleId);
                 if (module.isFixed()) {
                     continue;
                 }
-
                 const double moduleCenterX = module.centerX();
                 const double moduleCenterY = module.centerY();
                 const double moduleMinX = moduleCenterX - module.width() * 0.5;
@@ -326,10 +363,31 @@ double GlobalPlacer::computeOverflowRatio() {
             overflow += excess;
         }
     }
+    return overflow / (width * height);
+}
 
-    const double overflowRatio = overflow / (width * height);
+}  // namespace
+
+double GlobalPlacer::computeOverflowRatio() {
+    const int gridSize = (densityGridCount_ > 0
+                              ? densityGridCount_
+                              : static_cast<int>(std::sqrt(placement_->numModules())));
+    // Use capacity = 1.0 * bin area (no target factor) to keep the existing
+    // semantics of overflow ratio used by stop/plateau logic.
+    const double overflowRatio = computeOverflowAtGrid(*placement_, gridSize, 1.0);
     std::cout << "overflow: " << overflowRatio << std::endl;
     return overflowRatio;
+}
+
+double GlobalPlacer::computeCoarseOverflowRatio() {
+    if (coarseDensityGridCount <= 0) {
+        return 0.0;
+    }
+    // Overflow at the coarse legalizer-bin scale, with bin capacity scaled by
+    // the same densityTargetFactor used by the GP density penalty (a value
+    // sitting just below the legalizer's actual target).
+    return computeOverflowAtGrid(*placement_, coarseDensityGridCount,
+                                 densityTargetFactor);
 }
 
 void GlobalPlacer::exportPlot(const std::string& filename, bool showPlot) {

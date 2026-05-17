@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     if (param.bRunGlobal) {
         cout << endl << "////// Global Placement ///////" << endl;
 
-        constexpr int kNumThreads = 4;
+        constexpr int kNumThreads = 8;
         omp_set_dynamic(0);
         omp_set_num_threads(kNumThreads);
         omp_set_schedule(omp_sched_static, 0);
